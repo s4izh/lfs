@@ -1,0 +1,81 @@
+#!/bin/sh
+
+set -e
+# set -x
+
+function main() {
+  case "$1" in
+    format) format
+      ;;
+    umount)
+      umount_devices
+      ;;
+    mount) 
+      umount_devices
+      mount_devices
+      ;;
+  esac
+}
+
+BOOT_PART=sda1
+ROOT_PART=sda2
+HOME_PART=sda3
+SRC_PART=sda4
+SWAP_PART=sda5
+
+BOOT_MOUNT=/mnt/lfs/boot
+ROOT_MOUNT=/mnt/lfs
+HOME_MOUNT=/mnt/lfs/home
+SRC_MOUNT=/mnt/lfs/usr/src
+
+function format() {
+  mkfs -v -t ext4 /dev/$ROOT_PART
+  mkfs -v -t ext4 /dev/$HOME_PART
+  mkfs.fat -F 32 /dev/$BOOT_PART
+  mkfs -v -t ext4 /dev/$SRC_PART
+  mkswap /dev/$SWAP_PART
+}
+
+function umount_devices() {
+  if mount | grep -q "$HOME_MOUNT"; then
+    umount -v /dev/$HOME_PART
+  fi
+
+  if mount | grep -q "$BOOT_MOUNT"; then
+    umount -v /dev/$BOOT_PART
+  fi
+
+  if mount | grep -q "$SRC_MOUNT"; then
+    umount -v /dev/$SRC_PART
+  fi
+  if mount | grep -q "$ROOT_MOUNT"; then
+    umount -v /dev/$ROOT_PART
+  fi
+}
+
+function mount_devices() {
+  if [ ! -d /mnt/lfs ]; then
+    mkdir -pv /mnt/lfs
+  fi
+
+  mount -v /dev/$ROOT_PART /mnt/lfs
+
+  if [ ! -d /mnt/lfs/home ]; then
+    mkdir -pv /mnt/lfs/home
+  fi
+
+  if [ ! -d /mnt/lfs/boot ]; then
+    mkdir -pv /mnt/lfs/boot
+  fi
+
+  if [ ! -d /mnt/lfs/usr/src ]; then
+    mkdir -pv /mnt/lfs/usr/src
+  fi
+
+  mount -v /dev/$HOME_PART /mnt/lfs/home 
+  mount -v /dev/$BOOT_PART /mnt/lfs/boot
+  mount -v /dev/$SRC_PART /mnt/lfs/usr/src
+}
+
+main $1
+
