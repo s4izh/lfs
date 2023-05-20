@@ -1,0 +1,8 @@
+#!/bin/sh
+
+mountpoint -q $LFS/dev/shm && umount $LFS/dev/shm
+umount $LFS/dev/pts
+umount $LFS/{sys,proc,run,dev}
+
+cd $LFS
+tar -cf - . | pigz > $HOME/lfs/backup_dir/lfs-temp-tools-11.3-systemd-$(date +"%s").tar.xz

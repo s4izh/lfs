@@ -10,6 +10,9 @@ function main() {
     umount)
       umount_devices
       ;;
+    umount-special)
+      umount_special
+      ;;
     mount) 
       umount_devices
       mount_devices
@@ -51,6 +54,12 @@ function umount_devices() {
   if mount | grep -q "$ROOT_MOUNT"; then
     umount -v /dev/$ROOT_PART
   fi
+}
+
+function umount_special() {
+  mountpoint -q $LFS/dev/shm && umount $LFS/dev/shm
+  umount $LFS/dev/pts
+  umount $LFS/{sys,proc,run,dev}
 }
 
 function mount_devices() {
